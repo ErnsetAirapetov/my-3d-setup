@@ -1,0 +1,55 @@
+# G-code (генерируется слайсером, не источник правды)
+*.gcode
+*.bgcode
+*.gco
+
+# Тяжёлые модели — храним только ссылки, не сами файлы
+# Исключения по конкретным папкам прописываем через ! ниже
+*.stl
+*.3mf
+*.obj
+*.step
+*.stp
+
+# Исключения: STL для тестов калибровки и для модов — это часть репы
+!calibration/**/*.stl
+!calibration/**/*.3mf
+!mods/**/*.stl
+!mods/**/*.3mf
+
+# Камера и видео
+*.mp4
+*.mkv
+*.mov
+*.avi
+*.webm
+camera-snapshots/
+*.snapshot.png
+*.snapshot.jpg
+
+# Временные/служебные
+*.tmp
+*.bak
+*.swp
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Слайсеры — кэш и автосейвы
+*.orca_tmp
+*.bambu_tmp
+.orca-cache/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Архивы
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.rar
