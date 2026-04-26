@@ -9,16 +9,49 @@
 ## Принтер
 
 - **Модель:** Flashforge Adventurer 5M Pro.
-- **Состояние:** только распакован, обкатывается на заводских демо-печатях.
-- **Прошивка:** заводская (stock).
+- **Состояние:** распакован, подключён к сети, демо-печати отработаны. LAN-mode на принтере включён.
+- **Прошивка:** заводская **v3.2.7** (stock).
 - **План прошивок:** stock → Forge-X mod → Klipper.
 
-Полные спеки — в [printer/README.md](printer/README.md). Сетевые координаты (IP, камера) — в [printer/network.md](printer/network.md).
+Полные спеки — в [printer/README.md](printer/README.md). Сетевой референс — в [printer/network.md](printer/network.md).
 
-## Сеть
+## Подключение и API принтера
 
-- Локальный IP принтера: `192.168.1.134`.
-- Поток с камеры: `http://192.168.1.134:8080/?action=stream`.
+Полная документация и шпаргалки M-кодов — в [printer/network.md](printer/network.md). Здесь — то, что нужно знать сразу.
+
+**Идентификация:**
+
+| Параметр | Значение |
+| --- | --- |
+| IP в LAN | `192.168.1.134` |
+| MAC | `24:A1:0D:B2:AA:8E` |
+| Serial Number | `SNMOME9C00678` |
+| Check Code (он же «Printer ID» в UI принтера) | `a3356b04` |
+| AP-режим (если активирован) | SSID `Adventurer5M Pro`, пароль `12345678`, IP `192.168.0.240` |
+
+**Открытые порты (LAN-mode = ON):**
+
+| Порт | Что отдаёт | Авторизация |
+| --- | --- | --- |
+| 8080 | MJPEG-поток с камеры | нет |
+| 8898 | HTTP REST API (`/detail`, `/product`, `/control`) | POST + JSON `{"serialNumber":"SNMOME9C00678","checkCode":"a3356b04"}` |
+| 8899 | TCP plain text M-code API | нет |
+
+**Быстрый опрос из bash:**
+
+```bash
+# TCP — модель / прошивка / SN / рабочее поле / MAC
+exec 3<>/dev/tcp/192.168.1.134/8899
+printf '~M115\r\n' >&3; timeout 1 cat <&3
+exec 3<&-; exec 3>&-
+
+# HTTP — детальный статус (температуры, прогресс печати, фильтры, кумулятив)
+curl -s -X POST http://192.168.1.134:8898/detail \
+  -H 'Content-Type: application/json' \
+  -d '{"serialNumber":"SNMOME9C00678","checkCode":"a3356b04"}'
+```
+
+Шпаргалка M-кодов (`~M115`, `~M105`, `~M27`, `~M114`, `~M119`, `~M661`) и список полей `/detail` — в [printer/network.md](printer/network.md).
 
 ## Пользователь
 
