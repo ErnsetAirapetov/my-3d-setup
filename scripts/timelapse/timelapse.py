@@ -25,7 +25,7 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
-DEFAULT_IP = "192.168.1.134"
+DEFAULT_IP = "192.168.1.133"
 DEFAULT_INTERVAL = 15
 DEFAULT_FPS = 30
 SERIAL = "SNMOME9C00678"
@@ -50,7 +50,10 @@ def grab_frame(stream_url, timeout=10):
             end = buf.find(b"\xff\xd9", start + 2)
             if end > start:
                 return buf[start:end + 2]
-    raise RuntimeError("поток открылся, но JPEG не пришёл (возможно, камера занята другим клиентом)")
+    raise RuntimeError(
+        "поток открылся, но JPEG не пришёл "
+        "(возможно, камера занята другим клиентом)"
+    )
 
 
 def get_status(ip, port=8898, timeout=5):
@@ -60,7 +63,10 @@ def get_status(ip, port=8898, timeout=5):
         "serialNumber": SERIAL,
         "checkCode": CHECK_CODE,
     }).encode()
-    req = Request(url, data=payload, headers={"Content-Type": "application/json"})
+    req = Request(
+        url, data=payload,
+        headers={"Content-Type": "application/json"},
+    )
     try:
         with urlopen(req, timeout=timeout) as resp:
             return json.loads(resp.read())
@@ -110,20 +116,37 @@ def main():
     )
     parser.add_argument("--ip", default=DEFAULT_IP,
                         help=f"IP принтера (default: {DEFAULT_IP})")
-    parser.add_argument("--interval", type=float, default=DEFAULT_INTERVAL,
-                        help=f"интервал между кадрами в секундах (default: {DEFAULT_INTERVAL})")
-    parser.add_argument("--fps", type=int, default=DEFAULT_FPS,
-                        help=f"FPS итогового видео (default: {DEFAULT_FPS})")
-    parser.add_argument("--output-dir", type=Path, default=Path("output"),
-                        help="куда складывать кадры и видео (default: ./output)")
-    parser.add_argument("--label", default="",
-                        help="суффикс для имени папки (например, имя модели)")
-    parser.add_argument("--no-video", action="store_true",
-                        help="не собирать mp4 после остановки, оставить только кадры")
-    parser.add_argument("--stream-url", default="",
-                        help="полный URL MJPEG-потока (по умолчанию берём из /detail)")
-    parser.add_argument("--probe", action="store_true",
-                        help="один раз дёрнуть камеру, сохранить кадр и выйти")
+    parser.add_argument(
+        "--interval", type=float, default=DEFAULT_INTERVAL,
+        help=f"интервал между кадрами в секундах "
+             f"(default: {DEFAULT_INTERVAL})",
+    )
+    parser.add_argument(
+        "--fps", type=int, default=DEFAULT_FPS,
+        help=f"FPS итогового видео (default: {DEFAULT_FPS})",
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=Path("output"),
+        help="куда складывать кадры и видео (default: ./output)",
+    )
+    parser.add_argument(
+        "--label", default="",
+        help="суффикс для имени папки (например, имя модели)",
+    )
+    parser.add_argument(
+        "--no-video", action="store_true",
+        help="не собирать mp4 после остановки, "
+             "оставить только кадры",
+    )
+    parser.add_argument(
+        "--stream-url", default="",
+        help="полный URL MJPEG-потока "
+             "(по умолчанию берём из /detail)",
+    )
+    parser.add_argument(
+        "--probe", action="store_true",
+        help="один раз дёрнуть камеру, сохранить кадр и выйти",
+    )
     args = parser.parse_args()
 
     status = get_status(args.ip)
@@ -140,8 +163,14 @@ def main():
             jpeg = grab_frame(stream_url, timeout=10)
         except Exception as exc:
             print(f"[!] Кадр не пришёл: {exc}")
-            print("Возможные причины: принтер в idle и стоковая камера не стримит,")
-            print("FlashForge-приложение/веб-UI держит поток, или камера выключена.")
+            print(
+                "Возможные причины: принтер в idle и "
+                "стоковая камера не стримит,"
+            )
+            print(
+                "FlashForge-приложение/веб-UI держит поток, "
+                "или камера выключена."
+            )
             sys.exit(1)
         out = Path("probe.jpg")
         out.write_bytes(jpeg)
@@ -163,9 +192,13 @@ def main():
     print()
 
     if status is None:
-        print("[i] /detail не отвечает — продолжаем, камеру всё равно попробуем дёргать.")
+        print(
+            "[i] /detail не отвечает — продолжаем, "
+            "камеру всё равно попробуем дёргать."
+        )
     else:
-        print(f"[i] /detail доступен, статус принтера: {status.get('detail', {}).get('status')}")
+        printer_state = status.get("detail", {}).get("status")
+        print(f"[i] /detail доступен, статус принтера: {printer_state}")
 
     signal.signal(signal.SIGINT, handle_sigint)
 
@@ -184,8 +217,11 @@ def main():
             failures = 0
         except Exception as exc:
             failures += 1
-            print(f"[{datetime.now():%H:%M:%S}] ошибка кадра #{failures}: {exc}",
-                  file=sys.stderr)
+            ts = datetime.now().strftime("%H:%M:%S")
+            print(
+                f"[{ts}] ошибка кадра #{failures}: {exc}",
+                file=sys.stderr,
+            )
             if failures >= 10:
                 print("[!] 10 ошибок подряд — выходим.", file=sys.stderr)
                 break
