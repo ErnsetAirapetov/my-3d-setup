@@ -64,17 +64,56 @@ exec 3<&-; exec 3>&-
 
 ## HTTP API (порт 8898)
 
-REST API. Все эндпоинты — POST с JSON-телом, в теле обязательны `serialNumber` и `checkCode`. На стоке принтера **требует включённого LAN-режима** в настройках, иначе любой запрос возвращает `{"code":-2,"message":"Lan mode error"}`.
+REST API. Все эндпоинты — POST с JSON-телом, в теле обязательны `serialNumber` и `checkCode`. **Требует включённого LAN-режима** на принтере, иначе любой запрос возвращает `{"code":-2,"message":"Lan mode error"}`.
 
-Эндпоинты, на которые принтер реагирует (отвечают 200 OK после включения LAN-mode):
+В UI принтера переключатель называется **LAN-only**. Под ним показывается «Printer ID» — это и есть `checkCode` = `a3356b04`. **Включён 2026-04-26.**
+
+Эндпоинты:
 
 | Путь | Назначение |
 | --- | --- |
-| `POST /detail` | детальный статус (печать, температуры, прогресс) |
-| `POST /product` | информация о принтере |
+| `POST /detail` | детальный статус: температуры, прогресс печати, состояние фильтров и света, кумулятивная статистика |
+| `POST /product` | матрица того, чем можно управлять (свет, вентиляторы, температуры) |
 | `POST /control` | команды управления |
 
-Чтобы включить — на экране принтера: **Settings → Network → LAN Mode** (точное название уточнить).
+Пример вызова:
+
+```bash
+curl -s -X POST http://192.168.1.134:8898/detail \
+  -H 'Content-Type: application/json' \
+  -d '{"serialNumber":"SNMOME9C00678","checkCode":"a3356b04"}'
+```
+
+### Полезные поля из `/detail`
+
+Подмножество, которое нам интересно для мониторинга и калибровок:
+
+| Поле | Что значит |
+| --- | --- |
+| `firmwareVersion` | прошивка (на момент 2026-04-26 — `3.2.7`) |
+| `name` | Serial Number |
+| `ipAddr`, `macAddr` | сетевые идентификаторы |
+| `measure` | рабочее поле, например `220X220X220` |
+| `nozzleCnt`, `nozzleModel` | количество и диаметр сопла (`0.4mm`) |
+| `status` | `ready` / `printing` / `paused` / ... |
+| `leftTemp` / `leftTargetTemp` | текущая и целевая температура hotend |
+| `platTemp` / `platTargetTemp` | текущая и целевая температура стола |
+| `chamberTemp` / `chamberTargetTemp` | температура камеры (на 5M Pro есть датчик, нагрева камеры нет) |
+| `tvoc` | показания TVOC-сенсора (датчик летучих органических соединений) |
+| `doorStatus` | `close` / `open` |
+| `lightStatus` | `open` / `close` (свет внутри) |
+| `internalFanStatus`, `externalFanStatus` | состояние фильтрующих вентиляторов |
+| `coolingFanSpeed`, `chamberFanSpeed` | скорости вентиляторов |
+| `printProgress`, `printLayer`, `targetPrintLayer` | прогресс текущей печати |
+| `printFileName`, `printFileThumbUrl` | текущий файл и превью |
+| `currentPrintSpeed`, `printSpeedAdjust` | скорость и live-speed override |
+| `cumulativeFilament` | прожжено филамента всего, в метрах |
+| `cumulativePrintTime` | общее время печати, в минутах |
+| `remainingDiskSpace` | свободное место в `/data/` (в GB) |
+| `cameraStreamUrl` | URL потока с камеры |
+| `autoShutdown`, `autoShutdownTime` | авто-выключение (вкл/выкл и таймер в минутах) |
+| `zAxisCompensation` | live Z-offset |
+| `errorCode` | код ошибки, пусто — если ОК |
 
 ## Точка доступа принтера (Wi-Fi hotspot)
 
@@ -96,3 +135,4 @@ REST API. Все эндпоинты — POST с JSON-телом, в теле о�
 ## История изменений
 
 - **2026-04-26** — принтер первый раз подключён к Wi-Fi, IP `192.168.1.134`. Через TCP `~M115` подтверждены SN/MAC/прошивка/рабочее поле.
+- **2026-04-26** — на принтере включён режим **LAN-only**. HTTP REST API на 8898 заработал с `serialNumber=SNMOME9C00678` + `checkCode=a3356b04`. Подтверждены поля `/detail` и матрица `/product`.
