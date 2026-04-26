@@ -82,6 +82,7 @@ curl -s -X POST http://192.168.1.134:8898/detail \
 | [slicer/](slicer/) | Профили OrcaSlicer (machine / filament / process). |
 | [filaments/](filaments/) | Инвентарь и заметки по филаментам. |
 | [tools/](tools/) | Физические инструменты и шоппинг-лист. |
+| [scripts/](scripts/) | Служебные скрипты на хосте (таймлапс и т.п.). |
 | [models/](models/) | Источники моделей, библиотека ссылок, журнал печатей. |
 | [journal/](journal/) | Хронологический дневник работ. |
 
