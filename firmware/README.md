@@ -12,6 +12,12 @@
 
 Решение по переходу принимается после полной обкатки и калибровки на стоке — иначе невозможно отделить «дефекты железа» от «эффекта прошивки».
 
+> Прошивка — лишь часть целевого опенсурс-стека. Полная архитектура (принтер + внешний сервер CB1,
+> веб-интерфейс, камера, Telegram-бот, удалёнка) — в [ARCHITECTURE.md](../ARCHITECTURE.md) и
+> [STACK.md](../STACK.md). Важно: на этом принтере Forge-X разворачивает Klipper + Moonraker +
+> Mainsail/Fluidd прямо на бортовом хосте (128 МБ) — внешняя плата для **базового** Klipper не нужна,
+> CB1 берёт на себя тяжёлый обвес. Режим прошивки выбран **Headless** (ради экономии RAM).
+
 ## Чек-лист **перед** прошивкой (любой)
 
 - [ ] Сделать бэкап текущей прошивки и настроек.
@@ -29,4 +35,8 @@
 
 ## Источники
 
-> Заполнить после ресёрча — официальные репозитории Forge-X mod, документация Klipper, релевантные гайды.
+- **Forge-X** (выбранный мод): [github.com/DrA1ex/ff5m](https://github.com/DrA1ex/ff5m) · [FAQ](https://github.com/DrA1ex/ff5m/blob/main/docs/FAQ.md)
+- **Klipper-mod (xblax)** — оригинал, на котором основан Forge-X: [github.com/xblax/flashforge_ad5m_klipper_mod](https://github.com/xblax/flashforge_ad5m_klipper_mod)
+- **ZMod** (родственный форк): [wiki.zmod.link](https://wiki.zmod.link/Zmod/)
+- Гайд по установке Klipper на AD5M (для новичка): [blog.octoeverywhere.com](https://blog.octoeverywhere.com/how-to-install-klipper-on-your-flashforge-adventurer-5m-or-5m-pro/)
+- Документация Klipper: [klipper3d.org](https://www.klipper3d.org/) · Moonraker: [moonraker.readthedocs.io](https://moonraker.readthedocs.io/)

@@ -20,6 +20,10 @@
 
 Подробнее по этапам — в [firmware/README.md](firmware/README.md) и [calibration/README.md](calibration/README.md).
 
+**Целевой опенсурс-стек** (принтер + CB1: прошивка, камера, Telegram-бот, удалёнка, веб-интерфейс):
+- 🗺 [ARCHITECTURE.md](ARCHITECTURE.md) — полная визуальная картина: что где работает, почему, как подключается.
+- 📋 [STACK.md](STACK.md) — решения, бюджет памяти 128 МБ и пошаговый план сборки.
+
 ## Структура репы
 
 | Раздел | Назначение |
@@ -39,6 +43,7 @@
 
 - Новой сессии Claude — открыть [CLAUDE.md](CLAUDE.md).
 - Человеку — открыть [printer/README.md](printer/README.md).
+- По устройству всего опенсурс-стека (принтер + CB1) — [ARCHITECTURE.md](ARCHITECTURE.md).
 - По любому разделу — внутри лежит свой `README.md` с описанием папки.
 
 ## Принципы
