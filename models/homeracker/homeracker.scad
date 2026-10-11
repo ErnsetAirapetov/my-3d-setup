@@ -30,41 +30,60 @@ module hr_pin_hole(depth = 10) {
 //   Z — ширина слота; слот z ∈ [0, hr_span(width_units)], коробка прижата к z = 0.
 //
 // Что строится (с каждой стороны по Y):
-//   ушко   — пластина HR_EAR_T в плоскости лицевого торца, от края коробки до края
-//            опоры, с отверстиями под lockpin в центрах клеток;
-//   проставка — брусок за ушком, заполняет щель между коробкой и опорой;
-//              вес коробки ложится на нижнюю опору, а не на пины;
-//   сварка — полоска, заходящая на fuse_overlap в стенку коробки по высоте fuse_z
-//            (той половинки, в которую вплавляем), чтобы крепление срослось с ней.
+//   ушко    — пластина HR_EAR_T в плоскости лицевого торца, от края коробки до края
+//             опоры, с отверстиями под lockpin в центрах клеток;
+//   косынки  — два треугольных ребра rib_t за ушком (у коробки и у грани опоры),
+//             держат ушко на всю ширину слота; на печати верхняя грань под 45° —
+//             нависаний нет;
+//   подушка  — короткий брусок между косынками в зоне опоры (spacer_depth), высотой
+//             fuse_z: упирается в опору, вес коробки ложится на неё, а не на пины;
+//   рейка    — ребро вдоль стенки коробки на fuse_depth вглубь, высотой fuse_z,
+//             заходит в стенку на fuse_overlap — этим крепление сваривается с корпусом.
 //
 // box_h         — высота коробки в стойке (по Y);
 // gap_units     — просвет между опорами в юнитах (коробка проходит через него);
 // width_units   — ширина модуля в юнитах;
-// spacer_depth  — глубина проставки за ушком;
+// spacer_depth  — глубина подушки за ушком (не больше глубины опоры, 15 мм);
 // fuse_z        — высота вплавляемой части (толщина половинки корпуса);
-// fuse_overlap  — насколько сварка заходит в стенку коробки.
+// fuse_depth    — длина сварки вдоль коробки от лицевого торца; не заводить на вырезы;
+// rib_t         — толщина косынок и рейки;
+// gusset_depth  — длина косынки по низу (по умолчанию = ширине слота, т.е. 45°);
+// fuse_overlap  — насколько сварка заходит в стенку коробки;
+// box_clear     — зазор от крепления до коробки выше fuse_z (там стоит невплавляемая
+//                 половинка; с запасом на «слоновью ногу» её кромки).
 module hr_front_mount(box_h, gap_units = 5, width_units = 2,
-                      spacer_depth = 13, fuse_z = 0, fuse_overlap = 0.6) {
+                      spacer_depth = 13, fuse_z = 9, fuse_depth = 40,
+                      rib_t = 2.4, gusset_depth = undef, fuse_overlap = 0.6,
+                      box_clear = 0.5) {
     w      = hr_span(width_units);
-    y_box  = box_h / 2 + HR_CLEAR;                    // зазор до коробки (до второй половинки)
+    g      = is_undef(gusset_depth) ? w : gusset_depth;
+    y_box  = box_h / 2 + box_clear;                   // зазор до коробки (до второй половинки)
     y_gap  = gap_units * HR_UNIT / 2 - HR_CLEAR;      // внутренняя грань опоры
     y_ear  = (gap_units / 2 + 1) * HR_UNIT - HR_CLEAR; // внешний край ушка
     y_pin  = (gap_units + 1) * HR_UNIT / 2;            // центр опоры = центр отверстия
-    x_back = -HR_EAR_T - spacer_depth;
 
-    assert(y_gap > y_box, "коробка не проходит в просвет между опорами — увеличь gap_units");
+    assert(y_gap - y_box >= 2 * rib_t, "коробка не проходит в просвет между опорами — увеличь gap_units");
+    assert(spacer_depth <= HR_UNIT, "подушка глубже опоры");
+
+    // Треугольное ребро в плоскости XZ толщиной rib_t, от y0 вверх по Y.
+    module gusset(y0)
+        translate([0, y0 + rib_t, 0]) rotate([90, 0, 0]) linear_extrude(rib_t)
+            polygon([[0, 0], [0, w], [-HR_EAR_T, w], [-HR_EAR_T - g, 0]]);
 
     for (s = [-1, 1]) mirror([0, s < 0 ? 1 : 0, 0]) {
         difference() {
             union() {
                 // ушко
                 translate([-HR_EAR_T, y_box, 0]) cube([HR_EAR_T, y_ear - y_box, w]);
-                // проставка
-                translate([x_back, y_box, 0]) cube([spacer_depth, y_gap - y_box, w]);
-                // сварка с корпусом
-                if (fuse_z > 0)
-                    translate([x_back, box_h / 2 - fuse_overlap, 0])
-                        cube([-x_back, y_box - box_h / 2 + fuse_overlap + 0.01, fuse_z]);
+                // косынки
+                gusset(y_box);
+                gusset(y_gap - rib_t);
+                // подушка
+                translate([-HR_EAR_T - spacer_depth, y_box, 0])
+                    cube([spacer_depth, y_gap - y_box, fuse_z]);
+                // рейка-сварка вдоль стенки коробки
+                translate([-fuse_depth, box_h / 2 - fuse_overlap, 0])
+                    cube([fuse_depth, y_box + rib_t - box_h / 2 + fuse_overlap, fuse_z]);
             }
             for (zc = hr_cell_centers(width_units))
                 translate([-HR_EAR_T / 2, y_pin, zc]) hr_pin_hole(HR_EAR_T + 2);

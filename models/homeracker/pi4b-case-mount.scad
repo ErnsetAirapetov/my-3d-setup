@@ -22,6 +22,8 @@ show_top = true;
 gap_units    = 5;
 width_units  = 2;
 spacer_depth = 13;
+// длина сварки вдоль корпуса от торца портов; вырезы USB-C/HDMI начинаются с 45 мм
+fuse_depth   = 40;
 
 /* [Hidden] */
 // Габариты корпуса, снятые с мешей (мм).
@@ -36,13 +38,15 @@ module place_top()    translate([-CASE_L / 2, 0, BOTTOM_T + TOP_T / 2]) children
 
 if (part == "case") {
     place_bottom() import(str(case_dir, "/pi4b-bottom-m25-nuts.stl"), convexity = 10);
-    hr_front_mount(CASE_H, gap_units, width_units, spacer_depth, fuse_z = BOTTOM_T);
+    hr_front_mount(CASE_H, gap_units, width_units, spacer_depth,
+                   fuse_z = BOTTOM_T, fuse_depth = fuse_depth);
     if (show_top)
         %place_top() import(str(case_dir, "/pi4b-top.stl"), convexity = 10);
 } else {
-    // Тестовое ушко: одна сторона крепления без корпуса.
+    // Тестовое ушко: одна сторона крепления без корпуса, рейка укорочена до подушки.
     intersection() {
-        hr_front_mount(CASE_H, gap_units, width_units, spacer_depth);
+        hr_front_mount(CASE_H, gap_units, width_units, spacer_depth,
+                       fuse_z = BOTTOM_T, fuse_depth = spacer_depth + 2);
         translate([-50, 0, -1]) cube([100, 100, 100]);
     }
 }

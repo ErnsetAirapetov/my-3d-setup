@@ -96,7 +96,7 @@ def main(path, gap_units=5, width_units=2):
                     if 0 < zc + dz < w]
             check(f"  стенки вокруг отверстия", all(inside(tris, q) for q in ring))
         y_sp = gap_units * UNIT / 2 - CLEAR - 1  # у грани опоры
-        check(f"проставка y={sy * y_sp:+.1f} на месте", inside(tris, (-EAR_T - 5, sy * y_sp, w - 2)))
+        check(f"подушка y={sy * y_sp:+.1f} на месте", inside(tris, (-EAR_T - 5, sy * y_sp, 2)))
 
     print("ИТОГ:", "всё сходится" if ok else "есть проблемы")
     return ok
