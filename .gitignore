@@ -53,3 +53,7 @@ desktop.ini
 *.tar
 *.tar.gz
 *.rar
+
+# Кэш Python
+__pycache__/
+*.pyc
