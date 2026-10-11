@@ -30,6 +30,8 @@ fuse_depth   = 40;
 CASE_L   = 90.5;  // длина (глубина в стойке), порты на торце +X меша
 CASE_H   = 62;    // ширина платы = высота в стойке
 BOTTOM_T = 9.4;   // толщина нижней половинки (меш z ∈ [−4.7, 4.7])
+// фаска по краю дна: ~1 мм высотой; под ней у края сплошное дно (гнёзда гаек в ~16 мм от центра)
+BOTTOM_CHAMFER_FILL = [1.2, 1.5];
 TOP_T    = 10;    // толщина верхней половинки (меш z ∈ [−5, 5])
 
 // Перевод из координат меша в координаты крепления: торец портов в x = 0, дно на z = 0.
@@ -39,7 +41,8 @@ module place_top()    translate([-CASE_L / 2, 0, BOTTOM_T + TOP_T / 2]) children
 if (part == "case") {
     place_bottom() import(str(case_dir, "/pi4b-bottom-m25-nuts.stl"), convexity = 10);
     hr_front_mount(CASE_H, gap_units, width_units, spacer_depth,
-                   fuse_z = BOTTOM_T, fuse_depth = fuse_depth);
+                   fuse_z = BOTTOM_T, fuse_depth = fuse_depth,
+                   chamfer_fill = BOTTOM_CHAMFER_FILL);
     if (show_top)
         %place_top() import(str(case_dir, "/pi4b-top.stl"), convexity = 10);
 } else {

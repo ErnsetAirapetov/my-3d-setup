@@ -50,11 +50,14 @@ module hr_pin_hole(depth = 10) {
 // gusset_depth  — длина косынки по низу (по умолчанию = ширине слота, т.е. 45°);
 // fuse_overlap  — насколько сварка заходит в стенку коробки;
 // box_clear     — зазор от крепления до коробки выше fuse_z (там стоит невплавляемая
-//                 половинка; с запасом на «слоновью ногу» её кромки).
+//                 половинка; с запасом на «слоновью ногу» её кромки);
+// chamfer_fill  — [высота, глубина] фаски по краю дна коробки, которую рейка заполняет:
+//                 иначе под рейкой остаётся щель и слайсер перекрывает её мостом,
+//                 а рейка у стола не срастается с коробкой. [0, 0] — без заполнения.
 module hr_front_mount(box_h, gap_units = 5, width_units = 2,
                       spacer_depth = 13, fuse_z = 9, fuse_depth = 40,
                       rib_t = 2.4, gusset_depth = undef, fuse_overlap = 0.6,
-                      box_clear = 0.5) {
+                      box_clear = 0.5, chamfer_fill = [0, 0]) {
     w      = hr_span(width_units);
     g      = is_undef(gusset_depth) ? w : gusset_depth;
     y_box  = box_h / 2 + box_clear;                   // зазор до коробки (до второй половинки)
@@ -84,6 +87,10 @@ module hr_front_mount(box_h, gap_units = 5, width_units = 2,
                 // рейка-сварка вдоль стенки коробки
                 translate([-fuse_depth, box_h / 2 - fuse_overlap, 0])
                     cube([fuse_depth, y_box + rib_t - box_h / 2 + fuse_overlap, fuse_z]);
+                // заполнение фаски дна под рейкой
+                if (chamfer_fill[0] > 0)
+                    translate([-fuse_depth, box_h / 2 - chamfer_fill[1], 0])
+                        cube([fuse_depth, chamfer_fill[1], chamfer_fill[0]]);
             }
             for (zc = hr_cell_centers(width_units))
                 translate([-HR_EAR_T / 2, y_pin, zc]) hr_pin_hole(HR_EAR_T + 2);
